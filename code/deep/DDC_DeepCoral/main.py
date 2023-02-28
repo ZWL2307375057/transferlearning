@@ -7,12 +7,13 @@ import utils
 import numpy as np
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+# DEVICE = torch.device('cpu')
 log = []
 
 # Command setting
 parser = argparse.ArgumentParser(description='DDC_DCORAL')
-parser.add_argument('--model', type=str, default='resnet50')
-parser.add_argument('--batchsize', type=int, default=32)
+parser.add_argument('--model', type=str, default='alexnet')
+parser.add_argument('--batchsize', type=int, default=16)
 parser.add_argument('--src', type=str, default='amazon')
 parser.add_argument('--tar', type=str, default='webcam')
 parser.add_argument('--n_class', type=int, default=31)
@@ -20,7 +21,7 @@ parser.add_argument('--lr', type=float, default=1e-3)
 parser.add_argument('--n_epoch', type=int, default=100)
 parser.add_argument('--momentum', type=float, default=0.9)
 parser.add_argument('--decay', type=float, default=5e-4)
-parser.add_argument('--data', type=str, default='/home/jindwang/mine/data/office31')
+parser.add_argument('--data', type=str, default=r'D:\data\office31\transferlearning\code\deep\DDC_DeepCoral\dataset\Original_images')
 parser.add_argument('--early_stop', type=int, default=20)
 parser.add_argument('--lamb', type=float, default=10)
 parser.add_argument('--trans_loss', type=str, default='mmd')
@@ -59,8 +60,10 @@ def train(source_loader, target_train_loader, target_test_loader, model, optimiz
         n_batch = min(len_source_loader, len_target_loader)
         criterion = torch.nn.CrossEntropyLoss()
         for _ in range(n_batch):
-            data_source, label_source = iter_source.next()
-            data_target, _ = iter_target.next()
+            # data_source, label_source = iter_source.next()
+            # data_target, _ = iter_target.next()
+            data_source, label_source = next(iter_source)
+            data_target, _ = next(iter_target)
             data_source, label_source = data_source.to(
                 DEVICE), label_source.to(DEVICE)
             data_target = data_target.to(DEVICE)
@@ -93,11 +96,11 @@ def load_data(src, tar, root_dir):
     folder_src = os.path.join(root_dir, src)
     folder_tar = os.path.join(root_dir, tar)
     source_loader = data_loader.load_data(
-        folder_src, args.batchsize, True, {'num_workers': 4})
+        folder_src, args.batchsize, True, {'num_workers': 1})
     target_train_loader = data_loader.load_data(
-        folder_tar, args.batchsize, True, {'num_workers': 4})
+        folder_tar, args.batchsize, True, {'num_workers': 1})
     target_test_loader = data_loader.load_data(
-        folder_tar, args.batchsize, False, {'num_workers': 4})
+        folder_tar, args.batchsize, False, {'num_workers': 1})
     return source_loader, target_train_loader, target_test_loader
 
 
